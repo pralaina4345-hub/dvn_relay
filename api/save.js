@@ -1,4 +1,5 @@
 export default async function handler(req, res) {
+  // --- izinkan preflight (CORS) ---
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -7,6 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    // kirim ke Google Apps Script
     const response = await fetch(
       "https://script.google.com/macros/s/AKfycbyjxkPhF0MtATpcd0abpZXkZQC8-3kNhuupXRHaLlFD8ruN3i5NH2pfg70_q9VQpmog/exec",
       {
@@ -16,12 +18,14 @@ export default async function handler(req, res) {
       }
     );
 
-    const data = await response.text();
+    const text = await response.text();
 
+    // kirim balik ke browser biar keliatan hasilnya
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.status(200).json({ ok: true, data });
+    res.setHeader("Content-Type", "application/json");
+    return res.status(200).json({ ok: true, googleResponse: text });
   } catch (err) {
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.status(500).json({ ok: false, error: err.message });
+    return res.status(500).json({ ok: false, error: err.message });
   }
 }
